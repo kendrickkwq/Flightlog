@@ -1,0 +1,17 @@
+﻿@page "/protected"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@attribute [Authorize]
+@inject HttpClient Http
+@inject IAccessTokenProvider TokenProvider
+
+<AuthorizeView>
+    <Authorized>
+        <h3>Protected Content</h3>
+        <!-- Your protected content goes here -->
+    </Authorized>
+    <NotAuthorized>
+        <p>You are not authorized to view this content.</p>
+    </NotAuthorized>
+</AuthorizeView>

@@ -1,0 +1,46 @@
+﻿@page "/flightlogs"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Net.Http.Headers
+@attribute [Authorize]
+@inject HttpClient Http
+@inject IAccessTokenProvider TokenProvider
+
+<AuthorizeView>
+    <Authorized>
+        <h3>Flight Logs</h3>
+        <ul>
+            @foreach (var log in FlightLogs)
+            {
+                <li>@log.TailNumber - @log.FlightID</li>
+            }
+        </ul>
+    </Authorized>
+    <NotAuthorized>
+        <p>You are not authorized to view this content.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private List<FlightLog> FlightLogs = new List<FlightLog>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await TokenProvider.RequestAccessToken();
+        if (result.TryGetToken(out var token))
+        {
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value);
+            FlightLogs = await Http.GetFromJsonAsync<List<FlightLog>>("api/flightlog");
+        }
+    }
+
+    public class FlightLog
+    {
+        public int Id { get; set; }
+        public string TailNumber { get; set; }
+        public string FlightID { get; set; }
+        public DateTime Takeoff { get; set; }
+        public DateTime Landing { get; set; }
+        public TimeSpan Duration { get; set; }
+    }
+}

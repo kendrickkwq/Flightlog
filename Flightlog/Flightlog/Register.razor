@@ -1,0 +1,43 @@
+﻿@page "/register"
+@using Microsoft.AspNetCore.Components.Forms
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<EditForm Model="@registerModel" OnValidSubmit="@HandleRegister">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label for="username">Username</label>
+        <InputText id="username" @bind-Value="registerModel.Username" />
+    </div>
+    <div>
+        <label for="email">Email</label>
+        <InputText id="email" @bind-Value="registerModel.Email" />
+    </div>
+    <div>
+        <label for="password">Password</label>
+        <InputText id="password" @bind-Value="registerModel.Password" type="password" />
+    </div>
+    <button type="submit">Register</button>
+</EditForm>
+
+@code {
+    private RegisterModel registerModel = new RegisterModel();
+
+    private async Task HandleRegister()
+    {
+        var response = await Http.PostAsJsonAsync("api/account/register", registerModel);
+        if (response.IsSuccessStatusCode)
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    public class RegisterModel
+    {
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+}

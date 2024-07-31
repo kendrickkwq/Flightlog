@@ -1,0 +1,64 @@
+﻿@page "/login"
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Security.Claims
+@using System.Diagnostics
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject IAccessTokenProvider TokenProvider
+
+<EditForm Model="@loginModel" OnValidSubmit="@HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label for="username">Username</label>
+        <InputText id="username" @bind-Value="loginModel.Username" />
+    </div>
+    <div>
+        <label for="password">Password</label>
+        <InputText id="password" @bind-Value="loginModel.Password" type="password" />
+    </div>
+    <button type="submit">Login</button>
+</EditForm>
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+
+    private async Task HandleLogin()
+    {
+        var response = await Http.PostAsJsonAsync("api/account/login", loginModel);
+        if (response.IsSuccessStatusCode)
+        {
+            var token = await response.Content.ReadFromJsonAsync<TokenResponse>();
+            var authenticationState = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, loginModel.Username)
+            }, "jwt")));
+            
+            var tokenProvider = (ApiAuthorizationProvider)TokenProvider;
+            tokenProvider.SetToken(token.Token);
+
+            Navigation.NavigateTo("/");
+        }
+    }
+
+    public class TokenResponse
+    {
+        public string Token { get; set; }
+    }
+
+    [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
+    public class LoginModel
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+
+        private string GetDebuggerDisplay()
+        {
+            return ToString();
+        }
+    }
+}
